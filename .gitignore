@@ -14,3 +14,4 @@ logs/
 Thumbs.db
 .turbo/
 .pnpm-store/
+.playwright-mcp/

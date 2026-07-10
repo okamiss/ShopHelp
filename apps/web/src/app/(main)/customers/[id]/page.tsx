@@ -204,7 +204,7 @@ export default function CustomerDetailPage() {
             ) : (
               <Timeline
                 items={customer.notes.map((n) => ({
-                  children: (
+                  content: (
                     <div>
                       <div className="text-sm">{n.content}</div>
                       <div className="text-xs text-gray-400">
@@ -260,7 +260,7 @@ export default function CustomerDetailPage() {
         title={`AI 跟进话术 · ${customer.name}`}
         open={aiDrawerOpen}
         onClose={() => setAiDrawerOpen(false)}
-        width={560}
+        size="large"
         extra={
           <Button
             type="primary"

@@ -58,19 +58,19 @@
 - onboarding 三步向导（建商家→选行业→资料配置）；Dashboard 首页 7 个板块
 - **验收**：新账号注册后强制走完引导；首页各板块数据来自聚合接口
 
-### Phase 9: Web AI — Status: in_progress
+### Phase 9: Web AI — Status: complete
 - AI 文案中心（10 场景卡片）+ AI 回复助手（12 场景）：表单→3 版本卡片（适用场景/推荐标/复制/收藏）→历史
 - **验收**：端到端生成、复制、收藏、历史回看全通
 
-### Phase 10: Web 业务页 — Status: pending
+### Phase 10: Web 业务页 — Status: complete
 - 客户列表（筛选/意向/状态/标签）、客户详情（时间线+AI 跟进话术）、产品页、跟进任务页
 - **验收**：增删改查全通；客户详情可一键生成跟进话术并落历史
 
-### Phase 11: Web 收尾 — Status: pending
+### Phase 11: Web 收尾 — Status: complete
 - 套餐页（用量进度）、设置页（商家资料/成员）、经营日报占位页、平台管理后台 3 页
 - **验收**：14 个页面全部可达且无 500
 
-### Phase 12: 交付 — Status: pending
+### Phase 12: 交付 — Status: complete
 - docker-compose.prod.yml + Dockerfile、README、scripts/smoke-test.mjs、Playwright 端到端、`pnpm -r lint && build` 全绿
 - **验收**：冒烟脚本全通；浏览器端到端走查通过
 
@@ -84,3 +84,9 @@
 
 | Error | Attempt | Resolution |
 |-------|---------|------------|
+| @nestjs/jwt v11 `expiresIn` 类型不接受 string | 1 | cast 为 `JwtSignOptions['expiresIn']` |
+| express 5 类型 `req.params` 为 `string\|string[]` | 1 | MerchantGuard 内归一化取值；显式安装 @types/express |
+| API dev 进程运行时 `prisma generate` EPERM（engine DLL 被锁） | 1 | schema 未变时直接 `npx tsc` 检查；全量构建前先停 API watch 进程 |
+| bash curl 提交中文导致 mock 输入乱码 | 1 | 属 Windows curl 编码问题，浏览器端正常；清理 7 条脏记录 |
+| /customers 500：dev ENOENT `.next/server/vendor-chunks/antd@...` | 1 | 根因：`next dev` 运行中执行了 `next build`（共用 `.next`）。杀 3000 端口旧进程 → 删 `.next` → 重启 dev。教训：dev 运行时不要跑 `next build` |
+| 平台管理员登录被引导到 /onboarding | 1 | 登录跳转补充：无商家且 platformRole=ADMIN → /admin |

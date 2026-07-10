@@ -21,7 +21,13 @@ export default function LoginPage() {
       const result = await authApi.login(values);
       setSession(result);
       message.success(`欢迎回来，${result.user.name}`);
-      router.replace(result.memberships.length > 0 ? '/dashboard' : '/onboarding');
+      if (result.memberships.length > 0) {
+        router.replace('/dashboard');
+      } else if (result.user.platformRole === 'ADMIN') {
+        router.replace('/admin');
+      } else {
+        router.replace('/onboarding');
+      }
     } catch (e) {
       message.error(errorMessage(e, '登录失败'));
     } finally {

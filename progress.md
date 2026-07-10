@@ -29,3 +29,17 @@
   - 踩坑：antd v6 中 List 组件已标记废弃（控制台警告，下个大版本移除，暂用）；Tailwind 类与 antd 混用时部分 antd 组件需 style 属性兜底
   - 修复：mock provider 提取【本次需求】会带上尾部指令 → user prompt 尾行改为【输出要求】前缀；清理了 7 条 bash curl 产生的乱码测试记录（Windows curl 中文编码问题，浏览器端无此问题）；补 app/icon.svg
 - Phase 9 开始：AI 文案中心 + 回复助手
+- Phase 9 完成 ✅（Codex 会话执行运行时验收）：文案中心实际生成 3 版本、剪贴板复制与首版一致、收藏状态持久化且 favorite=true 历史可查、too_expensive 回复场景落库 3 版本；期间发现并处理了卡死的 Web 进程与 Prisma DLL 锁问题
+
+## Session 2026-07-10（Claude / Phase 10-12 收尾交付）
+
+- Phase 10+11 完成 ✅：客户列表(筛选/标签管理弹窗)/客户详情(时间线+AI 跟进话术 Drawer)/产品/任务/套餐/设置(资料+成员)/日报占位/admin 4 页（layout+总览+商家+用户+用量）
+- 全量 `pnpm build` 通过：shared + api(nest build) + web(next build, 20 路由全绿)
+- Phase 12 完成 ✅：
+  - apps/api/Dockerfile + apps/web/Dockerfile(standalone) + docker-compose.prod.yml（JWT/LLM 环境变量透传，NEXT_PUBLIC_API_URL 构建参数）
+  - README.md（快速开始/种子账号/DeepSeek 接入/冒烟/生产部署/架构要点/扩展点）
+  - scripts/smoke-test.mjs：17/17 全通过（注册→建商家→产品/客户/标签/任务→AI 3 类生成→收藏→用量→dashboard→跨租户 403→admin 403）
+  - Playwright 浏览器走查：客户列表/详情(AI 跟进话术实际生成)/产品/任务/套餐/设置/日报全部可达；新号注册→onboarding 三步向导→dashboard 全流程通过；admin 总览+商家列表真实数据渲染
+  - 修复 3 个走查发现的问题：dev 运行中跑 build 导致 .next 损坏(清理重启)；管理员登录误导向 onboarding(改跳 /admin)；antd v6 废弃告警(Timeline content / Drawer size)
+- **12/12 阶段全部完成，MVP 交付**。代码未提交 git（等用户指示）
+- 遗留说明：antd v6 List 组件废弃告警未处理（仍可用，替换属大版本重构）；DeepSeek 真实调用未验证（用户填 Key 后 LLM_PROVIDER=deepseek 即切换，未配置时自动回退 mock）
