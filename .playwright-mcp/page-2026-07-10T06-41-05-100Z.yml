@@ -1,0 +1,281 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e57]:
+    - complementary [ref=e58]:
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]: 🧠
+          - generic [ref=e62]:
+            - generic [ref=e63]: 店小智
+            - generic [ref=e64]: AI 私域经营助手
+        - menu [ref=e65]:
+          - menuitem [ref=e66] [cursor=pointer]:
+            - img "dashboard" [ref=e67]
+            - link "今日经营" [ref=e71]:
+              - /url: /dashboard
+          - menuitem [ref=e72] [cursor=pointer]:
+            - img "edit" [ref=e73]
+            - link "AI 文案中心" [ref=e77]:
+              - /url: /ai/copywriting
+          - menuitem [ref=e78] [cursor=pointer]:
+            - img "comment" [ref=e79]
+            - link "AI 回复助手" [ref=e85]:
+              - /url: /ai/reply
+          - menuitem [ref=e86] [cursor=pointer]:
+            - img "team" [ref=e87]
+            - link "客户管理" [ref=e91]:
+              - /url: /customers
+          - menuitem [ref=e92] [cursor=pointer]:
+            - img "appstore" [ref=e93]
+            - link "产品服务" [ref=e97]:
+              - /url: /products
+          - menuitem [ref=e98] [cursor=pointer]:
+            - img "calendar" [ref=e99]
+            - link "跟进任务" [ref=e103]:
+              - /url: /tasks
+          - menuitem [ref=e104] [cursor=pointer]:
+            - img "bar-chart" [ref=e105]
+            - link "经营日报" [ref=e109]:
+              - /url: /report
+          - menuitem [ref=e110] [cursor=pointer]:
+            - img "crown" [ref=e111]
+            - link "套餐用量" [ref=e115]:
+              - /url: /billing
+          - menuitem [ref=e116] [cursor=pointer]:
+            - img "setting" [ref=e117]
+            - link "设置" [ref=e121]:
+              - /url: /settings
+    - generic [ref=e122]:
+      - banner [ref=e123]:
+        - generic [ref=e124]:
+          - img "shop" [ref=e125]
+          - strong [ref=e129]: 悦颜美甲工作室
+          - generic [ref=e130]: 老板
+        - generic [ref=e131] [cursor=pointer]:
+          - img "user" [ref=e133]
+          - generic [ref=e136]: 王老板
+      - main [ref=e137]:
+        - generic [ref=e138]:
+          - generic [ref=e139]:
+            - generic [ref=e143]:
+              - generic [ref=e144]: 客户总数
+              - generic [ref=e146]:
+                - img "team" [ref=e148]
+                - generic [ref=e151]: "6"
+            - generic [ref=e155]:
+              - generic [ref=e156]: 成交/复购客户
+              - generic [ref=e158]:
+                - img "fire" [ref=e160]
+                - generic [ref=e163]: "2"
+            - generic [ref=e167]:
+              - generic [ref=e168]: 待办任务
+              - generic [ref=e170]:
+                - img "check" [ref=e172]
+                - generic [ref=e175]: "3"
+            - generic [ref=e179]:
+              - generic [ref=e180]: 今日 AI 生成
+              - generic [ref=e182]:
+                - img "rocket" [ref=e184]
+                - generic [ref=e187]: "10"
+                - generic [ref=e188]: / 100
+          - generic [ref=e189]:
+            - generic [ref=e193]:
+              - img "bulb" [ref=e194]
+              - text: 今日 AI 建议
+            - list [ref=e198]:
+              - listitem [ref=e199]: 👉 有 2 位客户到了跟进时间，优先处理今天的待跟进列表
+              - listitem [ref=e200]: 👉 2 位高意向（A 级）客户值得重点推进，可用「成交催单」话术临门一脚
+              - listitem [ref=e201]: 👉 还有 1 位新客户未建立首次沟通，越早破冰成交率越高
+          - generic [ref=e202]:
+            - generic [ref=e204]:
+              - generic [ref=e206]:
+                - generic [ref=e207]: 今日待办
+                - link [ref=e209] [cursor=pointer]:
+                  - /url: /tasks
+                  - text: 全部
+                  - img "right" [ref=e210]
+              - list [ref=e217]:
+                - listitem [ref=e218]:
+                  - generic [ref=e220]:
+                    - heading "跟进李小姐季卡意向，发一个限时优惠" [level=4] [ref=e221]
+                    - link "客户：李小姐" [ref=e223] [cursor=pointer]:
+                      - /url: /customers/cmrejgklk000lqtr8xxrhuk3w
+                  - list [ref=e224]:
+                    - listitem [ref=e225]:
+                      - button "check 完成" [ref=e226] [cursor=pointer]:
+                        - img "check" [ref=e228]
+                        - generic [ref=e231]: 完成
+                - listitem [ref=e232]:
+                  - generic [ref=e234]:
+                    - heading "回复刘同学的小红书私信，发定位和款式图" [level=4] [ref=e235]
+                    - link "客户：刘同学" [ref=e237] [cursor=pointer]:
+                      - /url: /customers/cmrejgkmf000xqtr85ishukxm
+                  - list [ref=e238]:
+                    - listitem [ref=e239]:
+                      - button "check 完成" [ref=e240] [cursor=pointer]:
+                        - img "check" [ref=e242]
+                        - generic [ref=e245]: 完成
+                - listitem [ref=e246]:
+                  - heading "发一条朋友圈：本周新款展示" [level=4] [ref=e249]
+                  - list [ref=e250]:
+                    - listitem [ref=e251]:
+                      - button "check 完成" [ref=e252] [cursor=pointer]:
+                        - img "check" [ref=e254]
+                        - generic [ref=e257]: 完成
+            - generic [ref=e259]:
+              - generic [ref=e261]:
+                - generic [ref=e262]: 待跟进客户
+                - link [ref=e264] [cursor=pointer]:
+                  - /url: /customers
+                  - text: 全部
+                  - img "right" [ref=e265]
+              - list [ref=e272]:
+                - listitem [ref=e273]:
+                  - generic [ref=e275]:
+                    - heading [level=4] [ref=e276]:
+                      - link "李小姐 A 级 沟通中" [ref=e277] [cursor=pointer]:
+                        - /url: /customers/cmrejgklk000lqtr8xxrhuk3w
+                        - text: 李小姐
+                        - generic [ref=e278]: A 级
+                        - generic [ref=e279]: 沟通中
+                    - generic [ref=e280]: 计划跟进：2026-07-10 · 上次联系：2 天前
+                - listitem [ref=e281]:
+                  - generic [ref=e283]:
+                    - heading [level=4] [ref=e284]:
+                      - link "刘同学 C 级 未沟通" [ref=e285] [cursor=pointer]:
+                        - /url: /customers/cmrejgkmf000xqtr85ishukxm
+                        - text: 刘同学
+                        - generic [ref=e286]: C 级
+                        - generic [ref=e287]: 未沟通
+                    - generic [ref=e288]: 计划跟进：2026-07-10 · 上次联系：从未
+          - generic [ref=e289]:
+            - generic [ref=e291]:
+              - generic [ref=e295]:
+                - img "fire" [ref=e296]
+                - text: 高意向客户
+              - list [ref=e303]:
+                - listitem [ref=e304]:
+                  - link "张姐 季卡会员，还剩 2 次" [ref=e305] [cursor=pointer]:
+                    - /url: /customers/cmrejgklx000pqtr8h4te7q6e
+                    - generic [ref=e306]: 张姐
+                    - generic [ref=e307]: 季卡会员，还剩 2 次
+                - listitem [ref=e308]:
+                  - link "李小姐 看中季卡，嫌有点贵，在对比别家" [ref=e309] [cursor=pointer]:
+                    - /url: /customers/cmrejgklk000lqtr8xxrhuk3w
+                    - generic [ref=e310]: 李小姐
+                    - generic [ref=e311]: 看中季卡，嫌有点贵，在对比别家
+            - generic [ref=e313]:
+              - generic [ref=e314]: 快捷生成文案
+              - generic [ref=e318]:
+                - link [ref=e319] [cursor=pointer]:
+                  - /url: /ai/copywriting?scenario=moments
+                  - button "🌸 朋友圈文案" [ref=e320]
+                - link [ref=e322] [cursor=pointer]:
+                  - /url: /ai/copywriting?scenario=group_notice
+                  - button "📢 微信群通知" [ref=e323]
+                - link [ref=e325] [cursor=pointer]:
+                  - /url: /ai/copywriting?scenario=xiaohongshu
+                  - button "📕 小红书文案" [ref=e326]
+                - link [ref=e328] [cursor=pointer]:
+                  - /url: /ai/copywriting?scenario=douyin_script
+                  - button "🎬 抖音口播" [ref=e329]
+                - link [ref=e331] [cursor=pointer]:
+                  - /url: /ai/copywriting?scenario=new_product
+                  - button "✨ 新品推广" [ref=e332]
+                - link [ref=e334] [cursor=pointer]:
+                  - /url: /ai/copywriting?scenario=promotion
+                  - button "🎁 优惠活动" [ref=e335]
+            - generic [ref=e338]:
+              - generic [ref=e340]:
+                - generic [ref=e341]: 套餐用量
+                - link [ref=e343] [cursor=pointer]:
+                  - /url: /billing
+                  - text: 详情
+                  - img "right" [ref=e344]
+              - generic [ref=e347]:
+                - generic [ref=e348]:
+                  - generic [ref=e349]: 今日生成
+                  - generic [ref=e350]: 10 / 100
+                - progressbar [ref=e351]
+                - generic [ref=e355]:
+                  - generic [ref=e356]: 本月生成
+                  - generic [ref=e357]: 10 / 2000
+                - progressbar [ref=e358]
+                - generic [ref=e362]: 专业版
+          - generic [ref=e364]:
+            - generic [ref=e366]:
+              - generic [ref=e367]: 最近生成记录
+              - link [ref=e369] [cursor=pointer]:
+                - /url: /ai/copywriting
+                - text: 去生成
+                - img "right" [ref=e370]
+            - list [ref=e377]:
+              - listitem [ref=e378]:
+                - generic [ref=e380]:
+                  - heading "ask_price 2026-07-10 00:27" [level=4] [ref=e381]:
+                    - generic [ref=e382]:
+                      - generic [ref=e383]: ask_price
+                      - text: 2026-07-10 00:27
+                  - generic [ref=e384]: 【演示数据】围绕「����Ǯ 请严格按照 system 中的 JSON 结构输出。」的亲切版文案：姐妹们，����Ǯ 请严格按照 system 中的 JSON 结构输出。真的值得安排一波～我们最近反馈特别好，想了解的私我，先到先约哦！
+                - list [ref=e386]:
+                  - listitem [ref=e387]:
+                    - button "copy 复制" [ref=e388] [cursor=pointer]:
+                      - img "copy" [ref=e390]
+                      - generic [ref=e393]: 复制
+              - listitem [ref=e394]:
+                - generic [ref=e396]:
+                  - heading "ask_price 2026-07-10 00:27" [level=4] [ref=e397]:
+                    - generic [ref=e398]:
+                      - generic [ref=e399]: ask_price
+                      - text: 2026-07-10 00:27
+                  - generic [ref=e400]: 【演示数据】围绕「����Ǯ 请严格按照 system 中的 JSON 结构输出。」的亲切版文案：姐妹们，����Ǯ 请严格按照 system 中的 JSON 结构输出。真的值得安排一波～我们最近反馈特别好，想了解的私我，先到先约哦！
+                - list [ref=e402]:
+                  - listitem [ref=e403]:
+                    - button "copy 复制" [ref=e404] [cursor=pointer]:
+                      - img "copy" [ref=e406]
+                      - generic [ref=e409]: 复制
+              - listitem [ref=e410]:
+                - generic [ref=e412]:
+                  - heading "ask_price 2026-07-10 00:27" [level=4] [ref=e413]:
+                    - generic [ref=e414]:
+                      - generic [ref=e415]: ask_price
+                      - text: 2026-07-10 00:27
+                  - generic [ref=e416]: 【演示数据】围绕「����Ǯ 请严格按照 system 中的 JSON 结构输出。」的亲切版文案：姐妹们，����Ǯ 请严格按照 system 中的 JSON 结构输出。真的值得安排一波～我们最近反馈特别好，想了解的私我，先到先约哦！
+                - list [ref=e418]:
+                  - listitem [ref=e419]:
+                    - button "copy 复制" [ref=e420] [cursor=pointer]:
+                      - img "copy" [ref=e422]
+                      - generic [ref=e425]: 复制
+              - listitem [ref=e426]:
+                - generic [ref=e428]:
+                  - heading "ask_price 2026-07-10 00:27" [level=4] [ref=e429]:
+                    - generic [ref=e430]:
+                      - generic [ref=e431]: ask_price
+                      - text: 2026-07-10 00:27
+                  - generic [ref=e432]: 【演示数据】围绕「����Ǯ 请严格按照 system 中的 JSON 结构输出。」的亲切版文案：姐妹们，����Ǯ 请严格按照 system 中的 JSON 结构输出。真的值得安排一波～我们最近反馈特别好，想了解的私我，先到先约哦！
+                - list [ref=e434]:
+                  - listitem [ref=e435]:
+                    - button "copy 复制" [ref=e436] [cursor=pointer]:
+                      - img "copy" [ref=e438]
+                      - generic [ref=e441]: 复制
+              - listitem [ref=e442]:
+                - generic [ref=e444]:
+                  - heading "ask_price 2026-07-10 00:27" [level=4] [ref=e445]:
+                    - generic [ref=e446]:
+                      - generic [ref=e447]: ask_price
+                      - text: 2026-07-10 00:27
+                  - generic [ref=e448]: 【演示数据】围绕「����Ǯ 请严格按照 system 中的 JSON 结构输出。」的亲切版文案：姐妹们，����Ǯ 请严格按照 system 中的 JSON 结构输出。真的值得安排一波～我们最近反馈特别好，想了解的私我，先到先约哦！
+                - list [ref=e450]:
+                  - listitem [ref=e451]:
+                    - button "copy 复制" [ref=e452] [cursor=pointer]:
+                      - img "copy" [ref=e454]
+                      - generic [ref=e457]: 复制
+  - generic [ref=e51] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e52]
+    - generic [ref=e458]:
+      - button "Open issues overlay" [ref=e459]:
+        - generic [ref=e460]:
+          - generic [ref=e461]: "0"
+          - generic [ref=e462]: "1"
+        - generic [ref=e463]: Issue
+      - button "Collapse issues badge" [ref=e464]
+  - alert [ref=e56]

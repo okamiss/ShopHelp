@@ -1,0 +1,16 @@
+/* Tailwind v4：只引入 theme + utilities，不引入 preflight，避免与 antd 样式冲突 */
+@layer theme, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: #f5f6fa;
+}
+
+* {
+  box-sizing: border-box;
+}

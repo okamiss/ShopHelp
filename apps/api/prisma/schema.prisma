@@ -1,0 +1,294 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------- Enums ----------------
+
+enum PlatformRole {
+  ADMIN
+  USER
+}
+
+enum MemberRole {
+  OWNER
+  STAFF
+}
+
+enum IntentLevel {
+  A
+  B
+  C
+  D
+}
+
+enum CustomerStatus {
+  UNCONTACTED
+  IN_CONTACT
+  DEAL
+  LOST
+  REPURCHASED
+}
+
+enum GenerationType {
+  COPYWRITING
+  REPLY
+  FOLLOW_UP
+}
+
+enum FollowTaskStatus {
+  PENDING
+  DONE
+  SKIPPED
+}
+
+enum PlanType {
+  FREE
+  PRO
+}
+
+enum ProductStatus {
+  ON
+  OFF
+}
+
+// ---------------- Models ----------------
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  phone        String?      @unique
+  passwordHash String       @map("password_hash")
+  name         String
+  platformRole PlatformRole @default(USER) @map("platform_role")
+  /// 预留微信小程序登录
+  wechatOpenId String?      @unique @map("wechat_open_id")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  ownedMerchants    Merchant[]       @relation("MerchantOwner")
+  memberships       MerchantMember[]
+  generations       AiGeneration[]
+  customerNotes     CustomerNote[]
+  assignedCustomers Customer[]       @relation("CustomerAssignee")
+
+  @@map("users")
+}
+
+model Merchant {
+  id              String   @id @default(cuid())
+  name            String
+  /// 行业 key，见 shared INDUSTRIES
+  industry        String
+  description     String?
+  address         String?
+  phone           String?
+  businessHours   String?  @map("business_hours")
+  /// 品牌语气，如「亲切自然，像朋友聊天」
+  brandTone       String?  @map("brand_tone")
+  /// 目标客群描述
+  targetCustomers String?  @map("target_customers")
+  ownerId         String   @map("owner_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  owner        User             @relation("MerchantOwner", fields: [ownerId], references: [id])
+  members      MerchantMember[]
+  products     Product[]
+  customers    Customer[]
+  tags         CustomerTag[]
+  notes        CustomerNote[]
+  generations  AiGeneration[]
+  followTasks  FollowTask[]
+  subscription Subscription?
+  usageRecords UsageRecord[]
+
+  @@map("merchants")
+}
+
+model MerchantMember {
+  id         String     @id @default(cuid())
+  merchantId String     @map("merchant_id")
+  userId     String     @map("user_id")
+  role       MemberRole @default(STAFF)
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, userId])
+  @@index([userId])
+  @@map("merchant_members")
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  merchantId    String        @map("merchant_id")
+  name          String
+  category      String?
+  /// 价格（元）
+  price         Decimal?      @db.Decimal(10, 2)
+  /// 计价单位，如「次 / 小时 / 份」
+  unit          String?
+  description   String?
+  /// 卖点，换行分隔
+  sellingPoints String?       @map("selling_points")
+  status        ProductStatus @default(ON)
+  sortOrder     Int           @default(0) @map("sort_order")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, status])
+  @@map("products")
+}
+
+model Customer {
+  id            String         @id @default(cuid())
+  merchantId    String         @map("merchant_id")
+  name          String
+  wechat        String?
+  phone         String?
+  /// 来源，如「朋友圈 / 抖音 / 转介绍」
+  source        String?
+  intentLevel   IntentLevel    @default(C) @map("intent_level")
+  status        CustomerStatus @default(UNCONTACTED)
+  remark        String?
+  nextFollowAt  DateTime?      @map("next_follow_at")
+  lastContactAt DateTime?      @map("last_contact_at")
+  /// 预留员工分配（第一版全员可见）
+  assignedToId  String?        @map("assigned_to_id")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  merchant    Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  assignedTo  User?          @relation("CustomerAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  notes       CustomerNote[]
+  tags        CustomerTag[]
+  followTasks FollowTask[]
+  generations AiGeneration[]
+
+  @@index([merchantId, status])
+  @@index([merchantId, intentLevel])
+  @@index([merchantId, nextFollowAt])
+  @@map("customers")
+}
+
+model CustomerNote {
+  id          String   @id @default(cuid())
+  merchantId  String   @map("merchant_id")
+  customerId  String   @map("customer_id")
+  content     String
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  merchant  Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer  Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdBy User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId, createdAt])
+  @@map("customer_notes")
+}
+
+model CustomerTag {
+  id         String   @id @default(cuid())
+  merchantId String   @map("merchant_id")
+  name       String
+  color      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  merchant  Merchant   @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customers Customer[]
+
+  @@unique([merchantId, name])
+  @@map("customer_tags")
+}
+
+model AiGeneration {
+  id         String         @id @default(cuid())
+  merchantId String         @map("merchant_id")
+  userId     String         @map("user_id")
+  type       GenerationType
+  /// 场景 key，见 shared scenarios
+  scenario   String
+  /// 用户输入与上下文参数
+  inputParams Json          @map("input_params")
+  /// LLM 结构化输出 {versions, recommendedIndex, tips}
+  output     Json
+  provider   String
+  model      String
+  tokensUsed Int            @default(0) @map("tokens_used")
+  isFavorite Boolean        @default(false) @map("is_favorite")
+  customerId String?        @map("customer_id")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  merchant Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user     User      @relation(fields: [userId], references: [id])
+
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([merchantId, isFavorite])
+  @@index([merchantId, type])
+  @@map("ai_generations")
+}
+
+model FollowTask {
+  id          String           @id @default(cuid())
+  merchantId  String           @map("merchant_id")
+  customerId  String?          @map("customer_id")
+  title       String
+  note        String?
+  dueDate     DateTime         @map("due_date") @db.Date
+  status      FollowTaskStatus @default(PENDING)
+  /// MANUAL 手工创建 / AUTO 系统每日任务生成
+  source      String           @default("MANUAL")
+  createdById String?          @map("created_by_id")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  merchant Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, status, dueDate])
+  @@map("follow_tasks")
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  merchantId             String    @unique @map("merchant_id")
+  plan                   PlanType  @default(FREE)
+  dailyGenerationLimit   Int       @map("daily_generation_limit")
+  monthlyGenerationLimit Int       @map("monthly_generation_limit")
+  startedAt              DateTime  @default(now()) @map("started_at")
+  /// null 表示长期有效（FREE）
+  expiresAt              DateTime? @map("expires_at")
+  /// 预留微信支付订单号
+  lastOrderId            String?   @map("last_order_id")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model UsageRecord {
+  id         String         @id @default(cuid())
+  merchantId String         @map("merchant_id")
+  /// 归属日期（当天 0 点）
+  date       DateTime       @db.Date
+  type       GenerationType
+  count      Int            @default(0)
+  tokensUsed Int            @default(0) @map("tokens_used")
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, date, type])
+  @@index([merchantId, date])
+  @@map("usage_records")
+}

@@ -1,0 +1,24 @@
+- generic [ref=e5]:
+  - generic [ref=e6]:
+    - generic [ref=e7]: 🧠
+    - heading "店小智" [level=3] [ref=e8]
+    - text: AI 私域经营助手 · 帮老板多成交
+  - generic [ref=e9]:
+    - generic [ref=e11]:
+      - generic "邮箱" [ref=e13]
+      - generic [ref=e17]:
+        - img "mail" [ref=e19]
+        - textbox "邮箱" [ref=e22]:
+          - /placeholder: you@example.com
+    - generic [ref=e24]:
+      - generic "密码" [ref=e26]
+      - generic [ref=e30]:
+        - img "lock" [ref=e32]
+        - textbox "密码" [ref=e35]
+        - button "显示" [ref=e37] [cursor=pointer]:
+          - img "eye-invisible" [ref=e38]
+    - button "登 录" [ref=e42] [cursor=pointer]
+  - generic [ref=e45]:
+    - text: 还没有账号？
+    - link "立即注册" [ref=e46] [cursor=pointer]:
+      - /url: /register

@@ -1,0 +1,24 @@
+{
+  "name": "shophelp",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.5.3",
+  "engines": {
+    "node": ">=22.12.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "build": "pnpm --filter @shophelp/shared run build && pnpm -r --if-present run build",
+    "lint": "pnpm --filter @shophelp/shared run build && pnpm -r --if-present run lint",
+    "dev": "pnpm --parallel -r --filter \"./apps/*\" run dev",
+    "db:generate": "pnpm --filter @shophelp/api run prisma:generate",
+    "db:migrate": "pnpm --filter @shophelp/api run prisma:migrate",
+    "db:deploy": "pnpm --filter @shophelp/api run prisma:deploy",
+    "db:seed": "pnpm --filter @shophelp/api run prisma:seed",
+    "smoke": "node scripts/smoke-test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "typescript": "5.9.3"
+  }
+}

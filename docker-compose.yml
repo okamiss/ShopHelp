@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shophelp-postgres
+    environment:
+      POSTGRES_USER: shophelp
+      POSTGRES_PASSWORD: shophelp
+      POSTGRES_DB: shophelp
+    ports:
+      - "5432:5432"
+    volumes:
+      - shophelp_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shophelp -d shophelp"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: shophelp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - shophelp_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  shophelp_pgdata:
+  shophelp_redisdata:

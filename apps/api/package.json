@@ -1,0 +1,57 @@
+{
+  "name": "@shophelp/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "clean": "node -e \"const fs=require('node:fs'); fs.rmSync('dist',{recursive:true,force:true}); fs.rmSync('tsconfig.build.tsbuildinfo',{force:true});\"",
+    "prebuild": "pnpm run clean && pnpm run prisma:generate",
+    "build": "nest build",
+    "prelint": "pnpm run prisma:generate",
+    "lint": "tsc -p tsconfig.build.json --noEmit --pretty false",
+    "test": "vitest run",
+    "prestart": "pnpm run prisma:generate",
+    "start": "node dist/main.js",
+    "prestart:dev": "pnpm run prisma:generate",
+    "start:dev": "nest start --watch",
+    "dev": "nest start --watch",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@nestjs/bullmq": "11.0.4",
+    "@nestjs/common": "11.1.26",
+    "@nestjs/config": "4.0.4",
+    "@nestjs/core": "11.1.26",
+    "@nestjs/jwt": "11.0.2",
+    "@nestjs/platform-express": "11.1.26",
+    "@nestjs/swagger": "11.4.4",
+    "@prisma/client": "6.19.2",
+    "@shophelp/shared": "workspace:*",
+    "bcryptjs": "3.0.3",
+    "bullmq": "5.78.0",
+    "class-transformer": "0.5.1",
+    "class-validator": "0.15.1",
+    "helmet": "^8.2.0",
+    "ioredis": "5.11.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "swagger-ui-express": "5.0.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "11.0.23",
+    "@nestjs/testing": "11.1.26",
+    "@types/express": "^5.0.6",
+    "@types/node": "22.19.0",
+    "@types/supertest": "7.2.0",
+    "prisma": "6.19.2",
+    "supertest": "7.2.2",
+    "tsx": "4.22.4",
+    "typescript": "5.9.3",
+    "vitest": "4.1.8"
+  }
+}
