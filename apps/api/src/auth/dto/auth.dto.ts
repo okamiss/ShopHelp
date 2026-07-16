@@ -36,3 +36,16 @@ export class RefreshDto {
   @IsNotEmpty()
   refreshToken: string;
 }
+
+export class ChangePasswordDto {
+  @ApiProperty({ example: 'Demo123456' })
+  @IsString()
+  @IsNotEmpty({ message: '请输入旧密码' })
+  oldPassword: string;
+
+  @ApiProperty({ example: 'NewPass123456', minLength: 8 })
+  @IsString()
+  @MinLength(8, { message: '新密码至少 8 位' })
+  @MaxLength(64)
+  newPassword: string;
+}

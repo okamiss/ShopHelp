@@ -13,8 +13,22 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  findStatusById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: { status: true },
+    });
+  }
+
   create(data: { email: string; passwordHash: string; name: string }) {
     return this.prisma.user.create({ data });
+  }
+
+  updatePassword(id: string, passwordHash: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { passwordHash, mustChangePassword: false },
+    });
   }
 
   /** 用户所属的商家成员关系（带商家概要） */

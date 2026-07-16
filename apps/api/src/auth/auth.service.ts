@@ -1,11 +1,17 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import { PlatformRole, User } from '@prisma/client';
+import { PlatformRole, User, UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 import type { AuthUser } from '../common/types/request-context';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { ChangePasswordDto, LoginDto, RegisterDto } from './dto/auth.dto';
 
 export interface TokenPair {
   accessToken: string;
@@ -30,13 +36,33 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.users.findByEmail(dto.email);
-    if (!user) throw new UnauthorizedException('邮箱或密码不正确');
-
-    const ok = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!ok) throw new UnauthorizedException('邮箱或密码不正确');
-
+    const user = await this.validateCredentials(dto);
+    if (user.platformRole === PlatformRole.ADMIN) {
+      throw new ForbiddenException('请使用管理员入口登录');
+    }
+    this.ensureActive(user);
     return this.buildAuthResult(user);
+  }
+
+  async adminLogin(dto: LoginDto) {
+    const user = await this.validateCredentials(dto);
+    if (user.platformRole !== PlatformRole.ADMIN) {
+      throw new ForbiddenException('请使用商家端登录');
+    }
+    this.ensureActive(user);
+    return this.buildAuthResult(user);
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.users.findById(userId);
+    if (!user) throw new UnauthorizedException('用户不存在');
+
+    const ok = await bcrypt.compare(dto.oldPassword, user.passwordHash);
+    if (!ok) throw new BadRequestException('旧密码不正确');
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    await this.users.updatePassword(userId, passwordHash);
+    return { success: true };
   }
 
   async refresh(refreshToken: string) {
@@ -52,6 +78,7 @@ export class AuthService {
 
     const user = await this.users.findById(payload.sub);
     if (!user) throw new UnauthorizedException('用户不存在');
+    this.ensureActive(user);
     return this.buildAuthResult(user);
   }
 
@@ -60,6 +87,21 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('用户不存在');
     const memberships = await this.users.membershipsOf(userId);
     return { user: this.sanitize(user), memberships };
+  }
+
+  private async validateCredentials(dto: LoginDto) {
+    const user = await this.users.findByEmail(dto.email);
+    if (!user) throw new UnauthorizedException('邮箱或密码不正确');
+
+    const ok = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!ok) throw new UnauthorizedException('邮箱或密码不正确');
+    return user;
+  }
+
+  private ensureActive(user: User) {
+    if (user.status === UserStatus.DISABLED) {
+      throw new ForbiddenException('账号已被禁用');
+    }
   }
 
   private async buildAuthResult(user: User) {

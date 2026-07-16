@@ -60,3 +60,7 @@
 - Phase 13 完成 ✅：Prisma 新增 UserStatus/MerchantStatus、用户禁用与强制改密字段、商家封停字段、admin_audit_logs（含操作人可空关系与要求索引）；shared 新增状态枚举/中文标签/AUDIT_ACTIONS。
   - migration `20260716080749_v1_1_account_admin` 创建并应用成功；`pnpm db:seed` 连续两次成功；`pnpm -r lint` 全绿。
   - 踩坑：只停止 3001 的业务子进程会被 Nest watch 父进程拉起，仍导致 Prisma DLL EPERM；需停止完整 API watch 分支。根级并行 dev 随之结束，因此当前 3000/3001 均已停止。
+- Phase 14 完成 ✅：新增 `/auth/admin/login` 与 `/auth/change-password`；商家/管理员登录入口双向隔离；login/refresh 校验 DISABLED；login/me 返回 mustChangePassword；JwtAuthGuard 每请求通过 UsersService 单字段 select 实时检查用户状态。
+  - curl 验收 13 项通过：双入口隔离、管理员登录、禁用用户登录/旧 access token/refresh 拒绝、改密旧密失效/新密成功/强制改密标记清除、种子密码恢复；`pnpm -r lint` 全绿。
+  - 验收后 demo 用户已恢复 ACTIVE、mustChangePassword=false、密码 `Demo123456`；API watch 已停止。
+  - 踩坑：Windows PowerShell 直接把 JSON 字符串传给 curl.exe 会破坏引号，最终改用临时 UTF-8 JSON 文件；后台进程清理需避免命令行模糊匹配当前 shell。
