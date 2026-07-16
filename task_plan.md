@@ -1,12 +1,13 @@
-# Task Plan — 店小智（ShopHelp）AI 私域经营助手 MVP
+# Task Plan — 店小智（ShopHelp）AI 私域经营助手
 
 ## Goal
 
 从零搭建面向中小商家的 AI 私域经营助手 Web 后台：AI 文案生成（10 场景）、AI 客户回复（12 场景）、客户管理、跟进任务、今日待办、套餐用量、平台管理后台。
 
 - 完整计划快照：`C:\Users\Administrator\.claude\plans\ai-mvp-moonlit-curry.md`
-- Owner：Claude Code（本次由 Claude 直接实现，经用户确认）
-- Reviewer：用户（hanyongle1108@gmail.com）；后续迭代可切回 Codex 实现 + Claude 审查
+- **v1.0 MVP（Phase 1–12）**：已完成交付。Owner：Claude Code（直接实现，经用户确认）
+- **v1.1 迭代（Phase 13–17）**：账号体系分离 + 平台管理增强。**Owner：Codex（实现）/ Reviewer：Claude Code（审查）**，经用户确认
+- Reviewer（最终）：用户（hanyongle1108@gmail.com）
 - LLM：默认 DeepSeek（OpenAI 兼容 API），内置 MockProvider 无 Key 兜底
 
 ## 技术基线（对齐 SaasLibrary 约定）
@@ -74,11 +75,83 @@
 - docker-compose.prod.yml + Dockerfile、README、scripts/smoke-test.mjs、Playwright 端到端、`pnpm -r lint && build` 全绿
 - **验收**：冒烟脚本全通；浏览器端到端走查通过
 
+---
+
+## v1.1 迭代：账号体系分离 + 平台管理增强（Phase 13–17，Owner: Codex）
+
+### 背景与用户决策
+
+v1.0 的三类缺口：①管理员和商家共用 /login；②管理后台只读，无法操作商家/用户（套餐开通管理、封停禁用、编辑、重置密码）；③商家端没有修改密码。用户已确认（2026-07-16）：
+
+- 重置密码方式 = **生成随机临时密码**（弹窗一次性展示，用户下次登录强制改密）
+- 纳入：**管理端操作审计日志**、**套餐到期自动降级**
+- 不做：多商家切换器、客户 CSV 导出、邮件重置链接（后续版本）
+
+### 总体设计约定（Codex 必读）
+
+- 遵循既有约定：Controller→Service 分层、租户隔离、DTO + class-validator、Swagger 标注、中文错误文案
+- **安全红线**：
+  1. 临时密码明文只出现在一次 API 响应中，不落日志、不落审计 detail
+  2. 所有 admin 写接口必须在 PlatformAdminGuard 内 + 全部落审计
+  3. 禁止对任何 `platformRole=ADMIN` 的账号执行禁用/重置密码（含自己）→ 400
+  4. JwtAuthGuard 实时状态查询只 select 必要字段（status）
+- **开发环境红线**：dev server 运行中不要跑 `next build`（共用 .next 会损坏 dev 缓存，v1.0 已踩坑）；API watch 运行中 prisma generate 会 EPERM，migration 前先停 API 进程
+
+### Phase 13: v1.1 数据层 — Status: pending
+- `apps/api/prisma/schema.prisma`：
+  - User 增加 `status UserStatus @default(ACTIVE)`（ACTIVE|DISABLED）、`mustChangePassword Boolean @default(false)`
+  - Merchant 增加 `status MerchantStatus @default(ACTIVE)`（ACTIVE|SUSPENDED）
+  - 新模型 AdminAuditLog → `admin_audit_logs`：id/adminId(String? 系统操作为 null)/action(String)/targetType(String)/targetId(String)/detail(Json?)/createdAt；索引 `[createdAt]`、`[targetType, targetId]`
+- migration 命名 `v1_1_account_admin`
+- `packages/shared/src/enums.ts`：新增 UserStatus/MerchantStatus 枚举 + 中文 label；新增 AUDIT_ACTIONS 常量（MERCHANT_UPDATE/MERCHANT_STATUS/MERCHANT_SUBSCRIPTION/USER_UPDATE/USER_STATUS/USER_RESET_PASSWORD/SUBSCRIPTION_EXPIRED）
+- **验收**：`pnpm db:migrate` 成功；`pnpm db:seed` 幂等重跑成功；`pnpm -r lint` 全绿
+
+### Phase 14: v1.1 API 账号安全 — Status: pending
+- `src/auth/`：
+  - 新增 POST /auth/admin/login：仅 platformRole=ADMIN 可登录，否则 403「请使用商家端登录」
+  - POST /auth/login 改造：拒绝 ADMIN 账号（403「请使用管理员入口登录」）；拒绝 status=DISABLED（403「账号已被禁用」）；refresh 同样校验
+  - 新增 POST /auth/change-password：{oldPassword, newPassword(min 8)}，bcrypt 校验旧密码，成功后清 mustChangePassword
+  - login/me 响应带出 mustChangePassword
+- `src/common/guards/jwt-auth.guard.ts`：verify 通过后查 user.status（select 单字段），DISABLED → 401「账号已被禁用」
+- **验收（curl）**：ADMIN 走 /auth/login 403；普通用户走 /auth/admin/login 403；DISABLED 用户登录/带旧 token 请求均被拒；改密后旧密码登录失败、新密码成功且 mustChangePassword 已清
+
+### Phase 15: v1.1 API 管理扩展 — Status: pending
+- `src/common/guards/merchant.guard.ts`：merchant.status=SUSPENDED 时普通成员访问 403，响应体带 `code: 'MERCHANT_SUSPENDED'`；平台管理员不受限
+- `src/admin/` 新增接口（全部落审计）：
+  - PATCH /admin/merchants/:id（编辑资料，复用 UpdateMerchantDto）
+  - PATCH /admin/merchants/:id/status {status}
+  - PATCH /admin/merchants/:id/subscription {plan, dailyGenerationLimit?, monthlyGenerationLimit?, expiresAt?}（缺省限额按 shared PLANS 默认值）
+  - PATCH /admin/users/:id（name/email，email 冲突 409）
+  - PATCH /admin/users/:id/status {status}（ADMIN 目标 → 400）
+  - POST /admin/users/:id/reset-password：crypto 生成 12 位随机密码 → bcrypt 落库 + mustChangePassword=true，明文仅本次响应返回（ADMIN 目标 → 400）
+  - GET /admin/audit-logs（分页，筛 targetType/action）
+- 新增 `src/admin/audit.service.ts`：log(adminId, action, targetType, targetId, detail?)
+- `src/jobs/daily-tasks.service.ts` 追加：plan=PRO && expiresAt<now → 降 FREE + 限额重置 FREE 默认 + 审计(adminId=null, SUBSCRIPTION_EXPIRED)，幂等
+- **验收（curl）**：封停商家后其成员任意业务接口 403 且 code=MERCHANT_SUSPENDED、管理员仍可访问；套餐调整后 /ai/usage 限额同步变化；重置密码流转完整；对 ADMIN 操作 400；每个写操作在 /admin/audit-logs 可查；构造过期 PRO 订阅 → 手动触发 /admin/jobs/daily-tasks/run 降级生效且重复触发不重复记账
+
+### Phase 16: v1.1 Web 管理端 — Status: pending
+- 新增 `src/app/admin/login/page.tsx`：深色调视觉区分 + 「平台管理」标识，调 authApi.adminLogin，成功 → /admin
+- `src/app/admin/layout.tsx`：未登录跳 /admin/login（AuthGuard 加 loginPath prop 复用）
+- `src/components/main-layout.tsx`：移除侧边栏「平台管理」入口
+- `src/lib/api.ts`：authApi.adminLogin + adminApi 补齐新接口封装；`src/lib/types.ts` 同步 status 字段
+- admin/merchants/page.tsx：状态列 + 状态筛选；行操作：编辑 Modal、套餐 Modal（plan Select/限额 InputNumber/有效期 DatePicker/展示当前套餐）、封停/恢复 Popconfirm
+- admin/users/page.tsx：状态列；行操作：编辑、禁用/启用、重置密码（结果 Modal 一次性展示临时密码 + 复制按钮 + 强制改密提示）；ADMIN 行操作置灰
+- 新增 admin/audit/page.tsx（时间/操作人/动作/对象/详情表格），layout 菜单加「审计」
+- **验收（浏览器）**：/admin/login 独立登录可用且普通账号被拒；商家封停/恢复、套餐调整、用户禁用、重置密码全部走通；审计页有对应记录；商家端侧边栏无管理入口
+
+### Phase 17: v1.1 Web 商家端 + 回归交付 — Status: pending
+- settings 页新增「账号安全」Tab：修改密码表单（旧密码+新密码+确认一致性校验）
+- 强制改密：auth store 存 mustChangePassword，主布局挂不可关闭 Modal，改密成功后清除
+- `src/lib/api-client.ts` 拦截器识别 code=MERCHANT_SUSPENDED → 跳转新增 `/suspended` 占位页（Result：商家已被平台封停，请联系客服）
+- 扩展 `scripts/smoke-test.mjs` ≥6 条新用例：admin 双入口隔离/封停后成员 403/禁用登录拒绝/重置密码旧密失效+临时密可登+mustChangePassword=true/套餐调整生效/审计落库
+- **验收**：改密与强制改密全流程浏览器走通；封停提示页生效；`pnpm -r lint && pnpm build` 全绿（先停 dev 进程）；冒烟脚本新旧用例全部通过（原 17 项回归不破）
+
 ## 预留扩展点（本期不做）
 
 - 微信小程序：users.wechatOpenId 字段 + auth 预留策略位
 - 微信支付：billing 模块 PaymentProvider 接口占位
 - SaasLibrary 知识库：LlmProvider 对齐其 ChatProvider，后续 HTTP 调其 RAG 检索做上下文增强
+- 邮件重置密码链接（需 SMTP）、多商家切换器、客户 CSV 导出、管理员 2FA
 
 ## Errors Encountered
 

@@ -43,3 +43,10 @@
   - 修复 3 个走查发现的问题：dev 运行中跑 build 导致 .next 损坏(清理重启)；管理员登录误导向 onboarding(改跳 /admin)；antd v6 废弃告警(Timeline content / Drawer size)
 - **12/12 阶段全部完成，MVP 交付**。代码未提交 git（等用户指示）
 - 遗留说明：antd v6 List 组件废弃告警未处理（仍可用，替换属大版本重构）；DeepSeek 真实调用未验证（用户填 Key 后 LLM_PROVIDER=deepseek 即切换，未配置时自动回退 mock）
+
+## Session 2026-07-16（Claude / v1.1 迭代规划）
+
+- 用户提出 v1.1 需求：①管理员登录独立页面；②管理后台可操作商家/用户（套餐开通管理、封停禁用、编辑、重置密码）；③商家端修改密码；由 **Codex 实现**
+- 用户决策：重置密码=生成随机临时密码（一次性展示+强制改密）；纳入审计日志+套餐到期自动降级；不做多商家切换器/CSV 导出/邮件重置
+- Claude 已将 Phase 13–17 详细方案（含接口清单、验收标准、安全红线、开发环境红线）写入 task_plan.md，等待 Codex 开发
+- 注意事项已写入 task_plan「总体设计约定」：临时密码不落审计、ADMIN 账号保护、dev 运行中禁跑 next build、migration 前停 API 进程

@@ -25,6 +25,15 @@
 - BullMQ repeatable job（每天 06:00）扫描 nextFollowAt/follow_tasks 生成今日待办与 AI 建议；AI 生成本身走同步 HTTP
 - 员工权限第一版简化为全员可见（customers.assignedToId 先落库不启用过滤）
 
+## v1.1 设计决策（2026-07-16，Codex 实现时参照）
+
+- 登录入口彻底分离：/auth/login 拒绝 ADMIN、/auth/admin/login 只收 ADMIN；前端 /admin/login 独立页面，商家侧边栏移除管理入口
+- 封停传播机制：MerchantGuard 查 merchant.status，403 响应带 code=MERCHANT_SUSPENDED，前端 axios 拦截器统一识别跳 /suspended
+- 禁用传播机制：JwtAuthGuard 每请求实时查 user.status（单字段 select，索引主键查询开销可接受），避免 30 分钟 access token 残留窗口
+- 重置密码：crypto 随机 12 位 → bcrypt 落库 + mustChangePassword=true；明文只在响应出现一次；前端强制改密 Modal 不可关闭
+- 审计：admin_audit_logs 表 adminId 可空（null=系统操作，如套餐到期降级）；所有 admin 写操作必落审计，detail 禁含明文密码
+- 套餐到期降级挂在现有 BullMQ 每日任务里（daily-tasks.service.ts），非新队列
+
 ## 集成点备忘（后续阶段）
 
 - SaasLibrary 聊天集成路由形态：`/chat-integrations/{provider}/{id}/events`，多租户凭 integration.companyId，不信任回调 payload——将来店小智接企业微信可复用此模式
