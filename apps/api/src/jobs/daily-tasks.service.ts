@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CustomerStatus, FollowTaskStatus } from '@prisma/client';
+import { CustomerStatus, FollowTaskStatus, PlanType } from '@prisma/client';
+import { AUDIT_ACTIONS, PLANS } from '@shophelp/shared';
+import { AuditService } from '../admin/audit.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 function startOfToday(): Date {
@@ -22,16 +24,65 @@ function endOfToday(): Date {
 export class DailyTasksService {
   private readonly logger = new Logger(DailyTasksService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   async generateForAllMerchants() {
+    const downgraded = await this.downgradeExpiredSubscriptions();
     const merchants = await this.prisma.merchant.findMany({ select: { id: true } });
     let created = 0;
     for (const merchant of merchants) {
       created += await this.generateForMerchant(merchant.id);
     }
-    this.logger.log(`每日待办生成完成，共创建 ${created} 条任务`);
-    return { merchants: merchants.length, created };
+    this.logger.log(`每日任务完成：降级 ${downgraded} 个套餐，创建 ${created} 条待办`);
+    return { merchants: merchants.length, created, downgraded };
+  }
+
+  private async downgradeExpiredSubscriptions(): Promise<number> {
+    const now = new Date();
+    const expired = await this.prisma.subscription.findMany({
+      where: { plan: PlanType.PRO, expiresAt: { lt: now } },
+      select: { id: true, merchantId: true, expiresAt: true },
+    });
+    const free = PLANS[PlanType.FREE];
+    let downgraded = 0;
+
+    for (const subscription of expired) {
+      const changed = await this.prisma.$transaction(async (tx) => {
+        const result = await tx.subscription.updateMany({
+          where: {
+            id: subscription.id,
+            plan: PlanType.PRO,
+            expiresAt: { lt: now },
+          },
+          data: {
+            plan: PlanType.FREE,
+            dailyGenerationLimit: free.dailyGenerationLimit,
+            monthlyGenerationLimit: free.monthlyGenerationLimit,
+            expiresAt: null,
+          },
+        });
+        if (result.count === 0) return false;
+
+        await this.audit.log(
+          null,
+          AUDIT_ACTIONS.SUBSCRIPTION_EXPIRED,
+          'MERCHANT',
+          subscription.merchantId,
+          {
+            previousPlan: PlanType.PRO,
+            plan: PlanType.FREE,
+            expiredAt: subscription.expiresAt?.toISOString() ?? null,
+          },
+          tx,
+        );
+        return true;
+      });
+      if (changed) downgraded++;
+    }
+    return downgraded;
   }
 
   async generateForMerchant(merchantId: string): Promise<number> {

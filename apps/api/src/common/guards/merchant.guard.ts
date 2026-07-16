@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { MemberRole, PlatformRole } from '@prisma/client';
+import { MemberRole, MerchantStatus, PlatformRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MEMBER_ROLES_KEY } from '../decorators/member-roles.decorator';
 import type { AuthedRequest } from '../types/request-context';
@@ -23,7 +23,10 @@ export class MerchantGuard implements CanActivate {
     const merchantId = Array.isArray(rawParam) ? rawParam[0] : rawParam;
     if (!merchantId) throw new NotFoundException('缺少 merchantId');
 
-    const merchant = await this.prisma.merchant.findUnique({ where: { id: merchantId }, select: { id: true } });
+    const merchant = await this.prisma.merchant.findUnique({
+      where: { id: merchantId },
+      select: { id: true, status: true },
+    });
     if (!merchant) throw new NotFoundException('商家不存在');
 
     let role: MemberRole;
@@ -35,6 +38,13 @@ export class MerchantGuard implements CanActivate {
         select: { role: true },
       });
       if (!membership) throw new ForbiddenException('无权访问该商家');
+      if (merchant.status === MerchantStatus.SUSPENDED) {
+        throw new ForbiddenException({
+          statusCode: 403,
+          message: '商家已被平台封停，请联系客服',
+          code: 'MERCHANT_SUSPENDED',
+        });
+      }
       role = membership.role;
     }
 

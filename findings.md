@@ -33,6 +33,7 @@
 - 重置密码：crypto 随机 12 位 → bcrypt 落库 + mustChangePassword=true；明文只在响应出现一次；前端强制改密 Modal 不可关闭
 - 审计：admin_audit_logs 表 adminId 可空（null=系统操作，如套餐到期降级）；所有 admin 写操作必落审计，detail 禁含明文密码
 - 套餐到期降级挂在现有 BullMQ 每日任务里（daily-tasks.service.ts），非新队列
+- 既有 `POST /admin/jobs/daily-tasks/run` 也属于 admin 写接口，v1.1 增加 `DAILY_TASKS_RUN` 审计动作；套餐到期降级另记 `SUBSCRIPTION_EXPIRED` 系统审计，重复触发不重复写入
 
 ## 集成点备忘（后续阶段）
 

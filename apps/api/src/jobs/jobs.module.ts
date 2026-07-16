@@ -1,12 +1,13 @@
 import { InjectQueue, BullModule } from '@nestjs/bullmq';
 import { Logger, Module, OnModuleInit } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { AuditService } from '../admin/audit.service';
 import { DAILY_TASKS_QUEUE, DailyTasksProcessor } from './daily-tasks.processor';
 import { DailyTasksService } from './daily-tasks.service';
 
 @Module({
   imports: [BullModule.registerQueue({ name: DAILY_TASKS_QUEUE })],
-  providers: [DailyTasksService, DailyTasksProcessor],
+  providers: [AuditService, DailyTasksService, DailyTasksProcessor],
   exports: [DailyTasksService],
 })
 export class JobsModule implements OnModuleInit {

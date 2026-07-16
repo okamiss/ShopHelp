@@ -64,3 +64,8 @@
   - curl 验收 13 项通过：双入口隔离、管理员登录、禁用用户登录/旧 access token/refresh 拒绝、改密旧密失效/新密成功/强制改密标记清除、种子密码恢复；`pnpm -r lint` 全绿。
   - 验收后 demo 用户已恢复 ACTIVE、mustChangePassword=false、密码 `Demo123456`；API watch 已停止。
   - 踩坑：Windows PowerShell 直接把 JSON 字符串传给 curl.exe 会破坏引号，最终改用临时 UTF-8 JSON 文件；后台进程清理需避免命令行模糊匹配当前 shell。
+- Phase 15 完成 ✅：MerchantGuard 增加 SUSPENDED 传播与 `MERCHANT_SUSPENDED` code；admin 增加商家编辑/状态/套餐、用户编辑/状态/重置密码、审计列表；新增 AuditService；daily-tasks 增加过期 PRO 自动降 FREE。
+  - 所有 admin 写接口均落审计，包括既有手动 daily-tasks；商家/用户/订阅写入与审计在同一事务；临时密码仅响应一次，审计 detail 仅记录 mustChangePassword，不含明文。
+  - curl 验收 40 项通过：封停传播且管理员豁免、套餐限额同步、邮箱冲突 409、用户禁用、ADMIN 禁用/重置 400、临时密码完整流转、全部审计动作可查、过期降级与重复触发幂等。
+  - 验收后 demo 恢复 ACTIVE、mustChangePassword=false、密码 `Demo123456`；商家恢复 ACTIVE；原套餐恢复 PRO/100/2000/无到期。`pnpm -r lint` 全绿，API 已停止。
+  - 踩坑：shared 新导出需先刷新 dist，否则直接 `pnpm -r lint` 时 API 读取旧类型声明。
