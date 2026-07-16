@@ -50,3 +50,13 @@
 - 用户决策：重置密码=生成随机临时密码（一次性展示+强制改密）；纳入审计日志+套餐到期自动降级；不做多商家切换器/CSV 导出/邮件重置
 - Claude 已将 Phase 13–17 详细方案（含接口清单、验收标准、安全红线、开发环境红线）写入 task_plan.md，等待 Codex 开发
 - 注意事项已写入 task_plan「总体设计约定」：临时密码不落审计、ADMIN 账号保护、dev 运行中禁跑 next build、migration 前停 API 进程
+
+## Session 2026-07-16（Codex / v1.1 Phase 13–17 实现）
+
+- 已按 planning-with-files 完成会话追赶并重读 task_plan.md / findings.md / progress.md；确认本次严格执行 Phase 13→17。
+- 创建 v1.0 迭代基线提交 `f4a5b26`；接手时工作区原本已 clean，因此该提交仅记录基线边界及首次命令踩坑。
+- CodeGraph 索引已存在且为最新（105 files / 1,107 nodes / 1,985 edges）；Postgres、Redis 容器均 healthy。
+- 检测到 Web dev(3000) 与 API watch(3001) 正在运行；Phase 13 migration 前将只停止 API 进程，避免 Prisma engine DLL 的 EPERM。
+- Phase 13 完成 ✅：Prisma 新增 UserStatus/MerchantStatus、用户禁用与强制改密字段、商家封停字段、admin_audit_logs（含操作人可空关系与要求索引）；shared 新增状态枚举/中文标签/AUDIT_ACTIONS。
+  - migration `20260716080749_v1_1_account_admin` 创建并应用成功；`pnpm db:seed` 连续两次成功；`pnpm -r lint` 全绿。
+  - 踩坑：只停止 3001 的业务子进程会被 Nest watch 父进程拉起，仍导致 Prisma DLL EPERM；需停止完整 API watch 分支。根级并行 dev 随之结束，因此当前 3000/3001 均已停止。

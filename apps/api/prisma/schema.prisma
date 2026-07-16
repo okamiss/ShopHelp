@@ -14,6 +14,16 @@ enum PlatformRole {
   USER
 }
 
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum MerchantStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 enum MemberRole {
   OWNER
   STAFF
@@ -59,42 +69,46 @@ enum ProductStatus {
 // ---------------- Models ----------------
 
 model User {
-  id           String       @id @default(cuid())
-  email        String       @unique
-  phone        String?      @unique
-  passwordHash String       @map("password_hash")
-  name         String
-  platformRole PlatformRole @default(USER) @map("platform_role")
+  id                 String       @id @default(cuid())
+  email              String       @unique
+  phone              String?      @unique
+  passwordHash       String       @map("password_hash")
+  name               String
+  platformRole       PlatformRole @default(USER) @map("platform_role")
+  status             UserStatus   @default(ACTIVE)
+  mustChangePassword Boolean      @default(false) @map("must_change_password")
   /// 预留微信小程序登录
-  wechatOpenId String?      @unique @map("wechat_open_id")
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
+  wechatOpenId       String?      @unique @map("wechat_open_id")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
 
   ownedMerchants    Merchant[]       @relation("MerchantOwner")
   memberships       MerchantMember[]
   generations       AiGeneration[]
   customerNotes     CustomerNote[]
   assignedCustomers Customer[]       @relation("CustomerAssignee")
+  adminAuditLogs    AdminAuditLog[]  @relation("AdminAuditLogAdmin")
 
   @@map("users")
 }
 
 model Merchant {
-  id              String   @id @default(cuid())
+  id              String         @id @default(cuid())
   name            String
   /// 行业 key，见 shared INDUSTRIES
   industry        String
   description     String?
   address         String?
   phone           String?
-  businessHours   String?  @map("business_hours")
+  businessHours   String?        @map("business_hours")
   /// 品牌语气，如「亲切自然，像朋友聊天」
-  brandTone       String?  @map("brand_tone")
+  brandTone       String?        @map("brand_tone")
   /// 目标客群描述
-  targetCustomers String?  @map("target_customers")
-  ownerId         String   @map("owner_id")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  targetCustomers String?        @map("target_customers")
+  ownerId         String         @map("owner_id")
+  status          MerchantStatus @default(ACTIVE)
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
 
   owner        User             @relation("MerchantOwner", fields: [ownerId], references: [id])
   members      MerchantMember[]
@@ -291,4 +305,20 @@ model UsageRecord {
   @@unique([merchantId, date, type])
   @@index([merchantId, date])
   @@map("usage_records")
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  adminId    String?  @map("admin_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  detail     Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  admin User? @relation("AdminAuditLogAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
+  @@map("admin_audit_logs")
 }

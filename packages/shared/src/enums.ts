@@ -4,6 +4,18 @@ export enum PlatformRole {
   USER = 'USER',
 }
 
+/** 用户账号状态 */
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  DISABLED = 'DISABLED',
+}
+
+/** 商家状态 */
+export enum MerchantStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}
+
 /** 商家内角色（merchant_members.role） */
 export enum MemberRole {
   OWNER = 'OWNER',
@@ -89,3 +101,23 @@ export const GENERATION_TYPE_LABELS: Record<GenerationType, string> = {
   [GenerationType.REPLY]: '客户回复',
   [GenerationType.FOLLOW_UP]: '跟进话术',
 };
+
+export const USER_STATUS_LABELS: Record<UserStatus, string> = {
+  [UserStatus.ACTIVE]: '正常',
+  [UserStatus.DISABLED]: '已禁用',
+};
+
+export const MERCHANT_STATUS_LABELS: Record<MerchantStatus, string> = {
+  [MerchantStatus.ACTIVE]: '正常',
+  [MerchantStatus.SUSPENDED]: '已封停',
+};
+
+export const AUDIT_ACTIONS = {
+  MERCHANT_UPDATE: 'MERCHANT_UPDATE',
+  MERCHANT_STATUS: 'MERCHANT_STATUS',
+  MERCHANT_SUBSCRIPTION: 'MERCHANT_SUBSCRIPTION',
+  USER_UPDATE: 'USER_UPDATE',
+  USER_STATUS: 'USER_STATUS',
+  USER_RESET_PASSWORD: 'USER_RESET_PASSWORD',
+  SUBSCRIPTION_EXPIRED: 'SUBSCRIPTION_EXPIRED',
+} as const;
