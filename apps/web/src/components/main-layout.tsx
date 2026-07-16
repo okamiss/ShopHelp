@@ -57,8 +57,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   }, [user?.platformRole]);
 
   return (
-    <Layout className="min-h-screen">
-      <Sider theme="light" width={216} className="border-r border-gray-100">
+    <Layout className="h-dvh overflow-hidden">
+      <Sider theme="light" width={216} className="h-full shrink-0 overflow-y-auto border-r border-gray-100">
         <div className="flex items-center gap-2 px-5 py-4">
           <span className="text-2xl">🧠</span>
           <div>
@@ -68,8 +68,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         </div>
         <Menu mode="inline" selectedKeys={[selectedKey]} items={menuItems} className="border-none" />
       </Sider>
-      <Layout>
-        <Header className="flex items-center justify-between border-b border-gray-100 bg-white px-6" style={{ background: '#fff', paddingInline: 24 }}>
+      <Layout className="min-h-0 min-w-0">
+        <Header className="shrink-0 flex items-center justify-between border-b border-gray-100 bg-white px-6" style={{ background: '#fff', paddingInline: 24 }}>
           <div className="flex items-center gap-2">
             <ShopOutlined className="text-gray-400" />
             <Typography.Text strong>{activeMerchant?.merchant.name ?? '未选择商家'}</Typography.Text>
@@ -100,7 +100,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             </div>
           </Dropdown>
         </Header>
-        <Content className="p-6" style={{ padding: 24 }}>
+        <Content className="min-h-0 flex-1 overflow-auto p-6" style={{ padding: 24 }}>
           {children}
         </Content>
       </Layout>
