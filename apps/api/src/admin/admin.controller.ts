@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { MerchantStatus } from '@prisma/client';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PlatformAdminGuard } from '../common/guards/platform-admin.guard';
@@ -27,8 +28,13 @@ export class AdminController {
 
   @Get('merchants')
   @ApiOperation({ summary: '商家列表' })
-  merchants(@Query('page') page = 1, @Query('pageSize') pageSize = 20, @Query('keyword') keyword?: string) {
-    return this.admin.listMerchants(Number(page), Number(pageSize), keyword);
+  merchants(
+    @Query('page') page = 1,
+    @Query('pageSize') pageSize = 20,
+    @Query('keyword') keyword?: string,
+    @Query('status') status?: MerchantStatus,
+  ) {
+    return this.admin.listMerchants(Number(page), Number(pageSize), keyword, status);
   }
 
   @Get('users')

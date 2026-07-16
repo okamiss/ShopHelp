@@ -35,6 +35,15 @@
 - 套餐到期降级挂在现有 BullMQ 每日任务里（daily-tasks.service.ts），非新队列
 - 既有 `POST /admin/jobs/daily-tasks/run` 也属于 admin 写接口，v1.1 增加 `DAILY_TASKS_RUN` 审计动作；套餐到期降级另记 `SUBSCRIPTION_EXPIRED` 系统审计，重复触发不重复写入
 
+## antd v6 浏览器自动化要点（2026-07-16，Phase 16 验收踩坑总结）
+
+- 两字中文按钮的可访问名带空格：「确 认」「取 消」「确 定」「登 录」——Playwright `getByRole('button', {name})` 必须用正则 `/确\s*认/` 或带空格字面量
+- v6 类名变化：Modal 内容容器 `ant-modal-content` → `ant-modal-container`；Popconfirm 根类 `.ant-popconfirm`（同时保留 `.ant-popover`）
+- Select 下拉：`role=option` 节点是隐藏的 a11y 列表不可点击；可见项是 `.ant-select-item-option[title="选项文案"]`
+- 固定右列（fixed: 'right'）上的 Popconfirm 在 1280 默认视口下确认按钮会溢出视口——自动化用 ≥1720 宽视口
+- E2E 脚本必须开头做 API 状态复位（上次中断的残留会让断言与初始态假设错位）
+- 本地无 Playwright MCP 时的替代：scratchpad 装 playwright-core + `channel:'msedge'` 走系统 Edge，免下载浏览器
+
 ## 集成点备忘（后续阶段）
 
 - SaasLibrary 聊天集成路由形态：`/chat-integrations/{provider}/{id}/events`，多租户凭 integration.companyId，不信任回调 payload——将来店小智接企业微信可复用此模式

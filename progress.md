@@ -69,3 +69,14 @@
   - curl 验收 40 项通过：封停传播且管理员豁免、套餐限额同步、邮箱冲突 409、用户禁用、ADMIN 禁用/重置 400、临时密码完整流转、全部审计动作可查、过期降级与重复触发幂等。
   - 验收后 demo 恢复 ACTIVE、mustChangePassword=false、密码 `Demo123456`；商家恢复 ACTIVE；原套餐恢复 PRO/100/2000/无到期。`pnpm -r lint` 全绿，API 已停止。
   - 踩坑：shared 新导出需先刷新 dist，否则直接 `pnpm -r lint` 时 API 读取旧类型声明。
+- Phase 16 阻塞 ⛔：管理端功能代码与 `pnpm -r lint` 已通过，但真实浏览器验收在 Ant Design Popconfirm 的 Playwright 定位上连续 3 次失败（最终失败点为重置密码确认按钮被判定在视口外）。
+  - 已严格停止，Phase 16 保持 pending，未提交 Phase 16，也未开始 Phase 17；完整错误过程已写入 task_plan.md。
+  - 浏览器脚本 finally 与收尾检查确认 demo 商家恢复 ACTIVE/PRO/100/2000、demo 用户恢复 ACTIVE、mustChangePassword=false，种子密码 `Demo123456` 可登录；3000/3001 已停止。
+
+## Session 2026-07-16（Claude / 接手 Phase 16 验收 + Phase 17）
+
+- 接手 Codex 阻塞：Phase 16 代码审阅通过（守卫 loginPath 复用、审计页、adminApi 封装均符合约定）
+- Popconfirm 三连败根因查明（详见 task_plan Errors 表 + findings「antd v6 浏览器自动化要点」）：可访问名空格「确 认」/ 1280 视口下固定右列弹层溢出 / v6 类名 ant-modal-container
+- Phase 16 完成 ✅：scratchpad/phase16-e2e.mjs（playwright-core + 系统 Edge + 1720 视口 + API 状态复位）24/24 通过：
+  - 管理员独立登录、双入口 403 隔离、封停/恢复 + MERCHANT_SUSPENDED 传播 + 管理员豁免、套餐 Modal 调整 PRO 55/555 且商家侧 usage 同步、用户禁用/启用、重置密码全流转（临时密码 12 位/旧密失效/mustChangePassword）、ADMIN 行保护（UI 置灰 + API 400）、审计页与审计 API、审计不含明文、商家侧边栏无管理入口
+  - 测试数据已复位（商家 ACTIVE/FREE 10-100，boss2 恢复原密码 ACTIVE）

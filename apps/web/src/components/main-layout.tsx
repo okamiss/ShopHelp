@@ -48,14 +48,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     return match ?? '/dashboard';
   }, [pathname]);
 
-  const menuItems = useMemo(() => {
-    const items = [...MENU_ITEMS];
-    if (user?.platformRole === 'ADMIN') {
-      items.push({ key: '/admin', icon: <ShopOutlined />, label: <Link href="/admin">平台管理</Link> });
-    }
-    return items;
-  }, [user?.platformRole]);
-
   return (
     <Layout className="h-dvh overflow-hidden">
       <Sider theme="light" width={216} className="h-full shrink-0 overflow-y-auto border-r border-gray-100">
@@ -66,7 +58,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             <div className="text-xs text-gray-400">AI 私域经营助手</div>
           </div>
         </div>
-        <Menu mode="inline" selectedKeys={[selectedKey]} items={menuItems} className="border-none" />
+        <Menu mode="inline" selectedKeys={[selectedKey]} items={MENU_ITEMS} className="border-none" />
       </Sider>
       <Layout className="min-h-0 min-w-0">
         <Header className="shrink-0 flex items-center justify-between border-b border-gray-100 bg-white px-6" style={{ background: '#fff', paddingInline: 24 }}>

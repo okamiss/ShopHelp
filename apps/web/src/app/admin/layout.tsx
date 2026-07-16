@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { LogoutOutlined } from '@ant-design/icons';
 import { Button, Layout, Menu, Typography } from 'antd';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -15,16 +15,17 @@ const ADMIN_MENU = [
   { key: '/admin/merchants', label: <Link href="/admin/merchants">商家</Link> },
   { key: '/admin/users', label: <Link href="/admin/users">用户</Link> },
   { key: '/admin/usage', label: <Link href="/admin/usage">用量</Link> },
+  { key: '/admin/audit', label: <Link href="/admin/audit">审计</Link> },
 ];
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
+  const { user, clear } = useAuthStore();
   const isAdmin = user?.platformRole === 'ADMIN';
 
   useEffect(() => {
-    if (user && !isAdmin) router.replace('/dashboard');
+    if (user && !isAdmin) router.replace('/admin/login');
   }, [user, isAdmin, router]);
 
   if (!isAdmin) return null;
@@ -38,8 +39,15 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       <Header className="flex items-center gap-6 bg-white" style={{ background: '#fff', display: 'flex', alignItems: 'center', gap: 24, borderBottom: '1px solid #f0f0f0' }}>
         <Typography.Text strong>🛠️ 店小智 · 平台管理</Typography.Text>
         <Menu mode="horizontal" selectedKeys={selected ? [selected] : []} items={ADMIN_MENU} style={{ flex: 1, borderBottom: 'none' }} />
-        <Button size="small" icon={<ArrowLeftOutlined />} onClick={() => router.push('/dashboard')}>
-          返回业务端
+        <Button
+          size="small"
+          icon={<LogoutOutlined />}
+          onClick={() => {
+            clear();
+            router.replace('/admin/login');
+          }}
+        >
+          退出管理
         </Button>
       </Header>
       <Content style={{ padding: 24 }}>{children}</Content>
@@ -48,8 +56,11 @@ function AdminShell({ children }: { children: React.ReactNode }) {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (pathname === '/admin/login') return <>{children}</>;
+
   return (
-    <AuthGuard requireMerchant={false}>
+    <AuthGuard requireMerchant={false} loginPath="/admin/login">
       <AdminShell>{children}</AdminShell>
     </AuthGuard>
   );

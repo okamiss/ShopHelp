@@ -2,6 +2,7 @@ import type { IndustryDef, PlanDef, PlanType, ScenarioDef } from '@shophelp/shar
 import { apiClient } from './api-client';
 import type {
   AdminMerchant,
+  AdminAuditLog,
   AdminStats,
   AdminUser,
   AuthResult,
@@ -16,6 +17,7 @@ import type {
   MerchantMember,
   Paginated,
   Product,
+  Subscription,
   UsageSummary,
   UserInfo,
   Membership,
@@ -26,6 +28,8 @@ import type {
 export const authApi = {
   login: (data: { email: string; password: string }) =>
     apiClient.post<AuthResult>('/auth/login', data).then((r) => r.data),
+  adminLogin: (data: { email: string; password: string }) =>
+    apiClient.post<AuthResult>('/auth/admin/login', data).then((r) => r.data),
   register: (data: { email: string; password: string; name: string }) =>
     apiClient.post<AuthResult>('/auth/register', data).then((r) => r.data),
   me: () => apiClient.get<{ user: UserInfo; memberships: Membership[] }>('/auth/me').then((r) => r.data),
@@ -148,7 +152,7 @@ export const dashboardApi = {
 
 export const adminApi = {
   stats: () => apiClient.get<AdminStats>('/admin/stats').then((r) => r.data),
-  merchants: (params: { page?: number; pageSize?: number; keyword?: string } = {}) =>
+  merchants: (params: { page?: number; pageSize?: number; keyword?: string; status?: string } = {}) =>
     apiClient.get<Paginated<AdminMerchant>>('/admin/merchants', { params }).then((r) => r.data),
   users: (params: { page?: number; pageSize?: number; keyword?: string } = {}) =>
     apiClient.get<Paginated<AdminUser>>('/admin/users', { params }).then((r) => r.data),
@@ -156,4 +160,26 @@ export const adminApi = {
     apiClient
       .get<{ date: string; count: number; tokensUsed: number }[]>('/admin/usage-trend', { params: { days } })
       .then((r) => r.data),
+  updateMerchant: (merchantId: string, data: Partial<Merchant>) =>
+    apiClient.patch<Merchant>(`/admin/merchants/${merchantId}`, data).then((r) => r.data),
+  updateMerchantStatus: (merchantId: string, status: 'ACTIVE' | 'SUSPENDED') =>
+    apiClient.patch<Merchant>(`/admin/merchants/${merchantId}/status`, { status }).then((r) => r.data),
+  updateSubscription: (
+    merchantId: string,
+    data: {
+      plan: PlanType;
+      dailyGenerationLimit?: number;
+      monthlyGenerationLimit?: number;
+      expiresAt?: string | null;
+    },
+  ) => apiClient.patch<Subscription>(`/admin/merchants/${merchantId}/subscription`, data).then((r) => r.data),
+  updateUser: (userId: string, data: { name?: string; email?: string }) =>
+    apiClient.patch<AdminUser>(`/admin/users/${userId}`, data).then((r) => r.data),
+  updateUserStatus: (userId: string, status: 'ACTIVE' | 'DISABLED') =>
+    apiClient.patch<AdminUser>(`/admin/users/${userId}/status`, { status }).then((r) => r.data),
+  resetUserPassword: (userId: string) =>
+    apiClient.post<{ temporaryPassword: string }>(`/admin/users/${userId}/reset-password`).then((r) => r.data),
+  auditLogs: (
+    params: { page?: number; pageSize?: number; targetType?: string; action?: string } = {},
+  ) => apiClient.get<Paginated<AdminAuditLog>>('/admin/audit-logs', { params }).then((r) => r.data),
 };

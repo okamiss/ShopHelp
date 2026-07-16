@@ -10,7 +10,15 @@ import { useAuthStore } from '@/stores/auth-store';
  * - 未登录 → /login
  * - 已登录但无商家 → /onboarding
  */
-export function AuthGuard({ children, requireMerchant = true }: { children: React.ReactNode; requireMerchant?: boolean }) {
+export function AuthGuard({
+  children,
+  requireMerchant = true,
+  loginPath = '/login',
+}: {
+  children: React.ReactNode;
+  requireMerchant?: boolean;
+  loginPath?: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const { hydrated, accessToken, activeMerchantId } = useAuthStore();
@@ -18,13 +26,13 @@ export function AuthGuard({ children, requireMerchant = true }: { children: Reac
   useEffect(() => {
     if (!hydrated) return;
     if (!accessToken) {
-      router.replace(`/login?from=${encodeURIComponent(pathname)}`);
+      router.replace(`${loginPath}?from=${encodeURIComponent(pathname)}`);
       return;
     }
     if (requireMerchant && !activeMerchantId) {
       router.replace('/onboarding');
     }
-  }, [hydrated, accessToken, activeMerchantId, requireMerchant, router, pathname]);
+  }, [hydrated, accessToken, activeMerchantId, requireMerchant, loginPath, router, pathname]);
 
   if (!hydrated || !accessToken || (requireMerchant && !activeMerchantId)) {
     return (

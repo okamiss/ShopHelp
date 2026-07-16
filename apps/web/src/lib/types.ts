@@ -13,6 +13,8 @@ export interface UserInfo {
   email: string;
   name: string;
   platformRole: 'ADMIN' | 'USER';
+  status: 'ACTIVE' | 'DISABLED';
+  mustChangePassword: boolean;
   isPlatformAdmin?: boolean;
 }
 
@@ -38,6 +40,7 @@ export interface Merchant {
   businessHours?: string | null;
   brandTone?: string | null;
   targetCustomers?: string | null;
+  status: 'ACTIVE' | 'SUSPENDED';
   subscription?: Subscription | null;
   _count?: { customers: number; products: number; members: number };
 }
@@ -173,9 +176,15 @@ export interface AdminMerchant {
   id: string;
   name: string;
   industry: string;
+  status: 'ACTIVE' | 'SUSPENDED';
   createdAt: string;
   owner: { id: string; email: string; name: string };
-  subscription?: { plan: PlanType; expiresAt: string | null } | null;
+  subscription?: {
+    plan: PlanType;
+    dailyGenerationLimit: number;
+    monthlyGenerationLimit: number;
+    expiresAt: string | null;
+  } | null;
   _count: { customers: number; members: number; generations: number };
 }
 
@@ -184,6 +193,18 @@ export interface AdminUser {
   email: string;
   name: string;
   platformRole: 'ADMIN' | 'USER';
+  status: 'ACTIVE' | 'DISABLED';
+  mustChangePassword: boolean;
   createdAt: string;
   memberships: { role: MemberRole; merchant: { id: string; name: string } }[];
+}
+
+export interface AdminAuditLog {
+  id: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  detail: unknown;
+  createdAt: string;
+  admin: { id: string; email: string; name: string } | null;
 }

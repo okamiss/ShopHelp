@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { PlatformRole, Prisma } from '@prisma/client';
+import { MerchantStatus, PlatformRole, Prisma } from '@prisma/client';
 import { AUDIT_ACTIONS, PLANS } from '@shophelp/shared';
 import * as bcrypt from 'bcryptjs';
 import { randomInt } from 'node:crypto';
@@ -47,8 +47,11 @@ export class AdminService {
     };
   }
 
-  async listMerchants(page = 1, pageSize = 20, keyword?: string) {
-    const where: Prisma.MerchantWhereInput = keyword ? { name: { contains: keyword } } : {};
+  async listMerchants(page = 1, pageSize = 20, keyword?: string, status?: MerchantStatus) {
+    const where: Prisma.MerchantWhereInput = {
+      ...(keyword ? { name: { contains: keyword } } : {}),
+      ...(status ? { status } : {}),
+    };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.merchant.findMany({
         where,
