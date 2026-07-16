@@ -38,6 +38,8 @@
 ## antd v6 浏览器自动化要点（2026-07-16，Phase 16 验收踩坑总结）
 
 - 两字中文按钮的可访问名带空格：「确 认」「取 消」「确 定」「登 录」——Playwright `getByRole('button', {name})` 必须用正则 `/确\s*认/` 或带空格字面量
+- Alert 组件 `message` prop 已废弃 → 用 `title`（v1.1 强制改密弹窗已按新 API 写）
+- 拦截器触发的强制跳转（如封停跳 /suspended）会打断 page.goto 的 load 等待——测试里用 `waitUntil:'commit'` + `waitForURL`
 - v6 类名变化：Modal 内容容器 `ant-modal-content` → `ant-modal-container`；Popconfirm 根类 `.ant-popconfirm`（同时保留 `.ant-popover`）
 - Select 下拉：`role=option` 节点是隐藏的 a11y 列表不可点击；可见项是 `.ant-select-item-option[title="选项文案"]`
 - 固定右列（fixed: 'right'）上的 Popconfirm 在 1280 默认视口下确认按钮会溢出视口——自动化用 ≥1720 宽视口

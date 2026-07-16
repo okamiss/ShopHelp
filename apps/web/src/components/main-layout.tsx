@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
+import { ForceChangePasswordModal } from './force-change-password-modal';
 
 const { Sider, Header, Content } = Layout;
 
@@ -96,6 +97,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           {children}
         </Content>
       </Layout>
+      <ForceChangePasswordModal />
     </Layout>
   );
 }

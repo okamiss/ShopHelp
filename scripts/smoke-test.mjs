@@ -155,17 +155,89 @@ async function main() {
   const cross = await req('GET', `/merchants/${mid}/customers`, { token: reg2.data.accessToken });
   ok('跨租户访问被拒（403）', cross.status === 403);
 
-  // 11. admin（种子管理员存在则测，不存在则跳过）
-  const adminLogin = await req('POST', '/auth/login', {
+  // 11. admin（v1.1 起管理员走独立入口 /auth/admin/login）
+  const adminLogin = await req('POST', '/auth/admin/login', {
     body: { email: 'admin@shophelp.local', password: 'Admin123456' },
   });
   if (adminLogin.status === 200 || adminLogin.status === 201) {
-    const stats = await req('GET', '/admin/stats', { token: adminLogin.data.accessToken, expectStatus: 200 });
+    const adminToken = adminLogin.data.accessToken;
+    const stats = await req('GET', '/admin/stats', { token: adminToken, expectStatus: 200 });
     ok('平台管理员统计', stats.data.merchantCount >= 1);
     const denied = await req('GET', '/admin/stats', { token });
     ok('普通用户访问 admin 被拒（403）', denied.status === 403);
+
+    // ---------- v1.1 账号体系与平台管理 ----------
+    console.log('\n—— v1.1 用例 ——');
+
+    // v1.1-1 双入口隔离
+    const adminViaNormal = await req('POST', '/auth/login', {
+      body: { email: 'admin@shophelp.local', password: 'Admin123456' },
+    });
+    ok('v1.1 管理员走商家入口被拒（403）', adminViaNormal.status === 403);
+    const userViaAdmin = await req('POST', '/auth/admin/login', { body: { email, password: 'Smoke123456' } });
+    ok('v1.1 普通用户走管理员入口被拒（403）', userViaAdmin.status === 403);
+
+    // v1.1-2 封停传播与恢复
+    await req('PATCH', `/admin/merchants/${mid}/status`, { token: adminToken, body: { status: 'SUSPENDED' }, expectStatus: 200 });
+    const suspended = await req('GET', `/merchants/${mid}/customers`, { token });
+    ok('v1.1 封停后成员业务 403 且 code=MERCHANT_SUSPENDED', suspended.status === 403 && suspended.data.code === 'MERCHANT_SUSPENDED');
+    const adminBypass = await req('GET', `/merchants/${mid}/customers`, { token: adminToken });
+    ok('v1.1 管理员访问被封停商家不受限', adminBypass.status === 200);
+    await req('PATCH', `/admin/merchants/${mid}/status`, { token: adminToken, body: { status: 'ACTIVE' }, expectStatus: 200 });
+    const restored = await req('GET', `/merchants/${mid}/customers`, { token });
+    ok('v1.1 恢复后成员业务访问正常', restored.status === 200);
+
+    // v1.1-3 套餐调整同步
+    await req('PATCH', `/admin/merchants/${mid}/subscription`, {
+      token: adminToken,
+      body: { plan: 'PRO', dailyGenerationLimit: 55, monthlyGenerationLimit: 555 },
+      expectStatus: 200,
+    });
+    const usageAfter = await req('GET', `/merchants/${mid}/ai/usage`, { token, expectStatus: 200 });
+    ok('v1.1 套餐调整后商家侧限额同步', usageAfter.data.dailyLimit === 55 && usageAfter.data.monthlyLimit === 555);
+
+    // v1.1-4 禁用/启用
+    const user2Id = reg2.data.user.id;
+    await req('PATCH', `/admin/users/${user2Id}/status`, { token: adminToken, body: { status: 'DISABLED' }, expectStatus: 200 });
+    const disabledLogin = await req('POST', '/auth/login', {
+      body: { email: `smoke2-${stamp}@test.local`, password: 'Smoke123456' },
+    });
+    ok('v1.1 禁用后登录被拒（403）', disabledLogin.status === 403);
+    await req('PATCH', `/admin/users/${user2Id}/status`, { token: adminToken, body: { status: 'ACTIVE' }, expectStatus: 200 });
+
+    // v1.1-5 重置密码全流转
+    const reset = await req('POST', `/admin/users/${user2Id}/reset-password`, { token: adminToken, expectStatus: 201 });
+    const tempPassword = reset.data.temporaryPassword;
+    ok('v1.1 重置返回 12 位临时密码', typeof tempPassword === 'string' && tempPassword.length === 12);
+    const oldPw = await req('POST', '/auth/login', { body: { email: `smoke2-${stamp}@test.local`, password: 'Smoke123456' } });
+    ok('v1.1 重置后旧密码失效', oldPw.status === 401 || oldPw.status === 403);
+    const tempLogin = await req('POST', '/auth/login', { body: { email: `smoke2-${stamp}@test.local`, password: tempPassword } });
+    ok('v1.1 临时密码可登且 mustChangePassword=true', (tempLogin.status === 200 || tempLogin.status === 201) && tempLogin.data.user?.mustChangePassword === true);
+    const changed = await req('POST', '/auth/change-password', {
+      token: tempLogin.data.accessToken,
+      body: { oldPassword: tempPassword, newPassword: 'Smoke123456' },
+    });
+    const backLogin = await req('POST', '/auth/login', { body: { email: `smoke2-${stamp}@test.local`, password: 'Smoke123456' } });
+    ok('v1.1 change-password 后新密可登且改密标记清除', changed.status < 300 && (backLogin.status === 200 || backLogin.status === 201) && backLogin.data.user?.mustChangePassword === false);
+
+    // v1.1-6 ADMIN 账号保护
+    const adminUsers = await req('GET', '/admin/users?keyword=admin@shophelp.local', { token: adminToken });
+    const adminId = adminUsers.data.items?.[0]?.id;
+    const protectStatus = await req('PATCH', `/admin/users/${adminId}/status`, { token: adminToken, body: { status: 'DISABLED' } });
+    const protectReset = await req('POST', `/admin/users/${adminId}/reset-password`, { token: adminToken });
+    ok('v1.1 禁用/重置 ADMIN 账号被拒（400）', protectStatus.status === 400 && protectReset.status === 400);
+
+    // v1.1-7 审计落库且不含明文
+    const audit = await req('GET', '/admin/audit-logs?pageSize=50', { token: adminToken, expectStatus: 200 });
+    const actions = new Set(audit.data.items.map((i) => i.action));
+    ok(
+      'v1.1 审计含状态/套餐/禁用/重置动作',
+      ['MERCHANT_STATUS', 'MERCHANT_SUBSCRIPTION', 'USER_STATUS', 'USER_RESET_PASSWORD'].every((a) => actions.has(a)),
+    );
+    const leaked = audit.data.items.some((i) => JSON.stringify(i.detail ?? {}).includes(tempPassword));
+    ok('v1.1 审计 detail 不含临时密码明文', !leaked);
   } else {
-    console.log('  ⚠️ 未找到种子管理员，跳过 admin 检查');
+    console.log('  ⚠️ 未找到种子管理员，跳过 admin 与 v1.1 检查');
   }
 
   console.log(`\n结果：${passed} 通过，${failed} 失败`);

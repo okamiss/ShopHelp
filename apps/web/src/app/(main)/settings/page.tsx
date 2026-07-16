@@ -9,6 +9,7 @@ import { merchantApi } from '@/lib/api';
 import { errorMessage } from '@/lib/api-client';
 import { useMerchantId } from '@/hooks/use-merchant-id';
 import { useAuthStore } from '@/stores/auth-store';
+import { ChangePasswordForm } from '@/components/change-password-form';
 
 export default function SettingsPage() {
   const merchantId = useMerchantId();
@@ -27,9 +28,18 @@ export default function SettingsPage() {
         items={[
           { key: 'profile', label: '商家资料', children: <MerchantProfileTab isOwner={isOwner} /> },
           { key: 'members', label: '成员管理', children: <MembersTab isOwner={isOwner} /> },
+          { key: 'security', label: '账号安全', children: <SecurityTab /> },
         ]}
       />
     </div>
+  );
+}
+
+function SecurityTab() {
+  return (
+    <Card size="small" title="修改密码">
+      <ChangePasswordForm />
+    </Card>
   );
 }
 

@@ -34,6 +34,18 @@ async function refreshAccessToken(): Promise<string | null> {
 apiClient.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
+    // 商家被平台封停：统一跳转提示页
+    const data = error.response?.data as { code?: string } | undefined;
+    if (
+      error.response?.status === 403 &&
+      data?.code === 'MERCHANT_SUSPENDED' &&
+      typeof window !== 'undefined' &&
+      !window.location.pathname.startsWith('/suspended')
+    ) {
+      window.location.href = '/suspended';
+      return Promise.reject(error);
+    }
+
     const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined;
     if (error.response?.status === 401 && original && !original._retried && !original.url?.includes('/auth/')) {
       original._retried = true;

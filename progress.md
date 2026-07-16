@@ -80,3 +80,10 @@
 - Phase 16 完成 ✅：scratchpad/phase16-e2e.mjs（playwright-core + 系统 Edge + 1720 视口 + API 状态复位）24/24 通过：
   - 管理员独立登录、双入口 403 隔离、封停/恢复 + MERCHANT_SUSPENDED 传播 + 管理员豁免、套餐 Modal 调整 PRO 55/555 且商家侧 usage 同步、用户禁用/启用、重置密码全流转（临时密码 12 位/旧密失效/mustChangePassword）、ADMIN 行保护（UI 置灰 + API 400）、审计页与审计 API、审计不含明文、商家侧边栏无管理入口
   - 测试数据已复位（商家 ACTIVE/FREE 10-100，boss2 恢复原密码 ACTIVE）
+- Phase 17 完成 ✅（Claude 实现）：
+  - 账号安全 Tab（settings 复用 ChangePasswordForm）+ 强制改密 Modal（mustChangePassword 驱动、不可关闭、改密后自动消失）+ /suspended 封停提示页 + api-client 拦截 MERCHANT_SUSPENDED 强跳
+  - 冒烟脚本扩展：修复 v1.0 管理员登录段（改走 /auth/admin/login）+ 新增 14 条 v1.1 用例，实测 31/31 全通过（原 17 项回归不破）
+  - 意外收获：用户已配置 DeepSeek Key，冒烟中 provider=deepseek 真实生成 3 版本成功——v1.0 遗留的「DeepSeek 真实调用未验证」已闭环
+  - Phase 17 浏览器验收 9/9（scratchpad/phase17-e2e.mjs）：临时密码登录→强制改密弹窗→改密后消失；设置页改密；封停自动跳 /suspended、恢复后重试回 dashboard
+  - 全量 `pnpm -r lint` + `pnpm build` 全绿（23 路由）；踩坑复现：杀 dev 进程要杀 nest watch 父进程整棵树，否则子进程被拉起继续锁 Prisma DLL
+- **v1.1 迭代 17/17 阶段全部完成**

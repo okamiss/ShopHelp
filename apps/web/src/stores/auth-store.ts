@@ -13,6 +13,8 @@ interface AuthState {
   setSession: (result: AuthResult) => void;
   setActiveMerchant: (merchantId: string) => void;
   setMemberships: (memberships: Membership[]) => void;
+  /** 局部更新用户信息（如改密后清除 mustChangePassword） */
+  updateUser: (patch: Partial<UserInfo>) => void;
   clear: () => void;
   setHydrated: () => void;
 }
@@ -40,6 +42,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setActiveMerchant: (merchantId) => set({ activeMerchantId: merchantId }),
+
+      updateUser: (patch) =>
+        set((state) => ({ user: state.user ? { ...state.user, ...patch } : state.user })),
 
       setMemberships: (memberships) =>
         set((state) => ({

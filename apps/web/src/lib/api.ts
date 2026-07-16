@@ -32,6 +32,8 @@ export const authApi = {
     apiClient.post<AuthResult>('/auth/admin/login', data).then((r) => r.data),
   register: (data: { email: string; password: string; name: string }) =>
     apiClient.post<AuthResult>('/auth/register', data).then((r) => r.data),
+  changePassword: (data: { oldPassword: string; newPassword: string }) =>
+    apiClient.post('/auth/change-password', data).then((r) => r.data),
   me: () => apiClient.get<{ user: UserInfo; memberships: Membership[] }>('/auth/me').then((r) => r.data),
 };
 
